@@ -1,0 +1,47 @@
+version: "3"
+
+services:
+  mqtt:
+    image: eclipse-mosquitto
+    container_name: mqtt
+    ports:
+      - "1883:1883" #default mqtt port
+      - "9001:9001" #default mqtt port for websockets
+    tty: true
+    restart: unless-stopped
+    volumes:
+      - ./config:/mosquitto/config:rw
+      - ./data:/mosquitto/data:rw
+      - ./log:/mosquitto/log:rw
+    
+  sensor-subscribe:
+    build: ./sensor-subscribe
+    container_name: subscriber
+    volumes:
+      - ./sensor-subscribe:/sensor-subscribe
+
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./db:/data/db:rw
+
+  sensor-publish:
+    build: ./sensor-publish
+    container_name: publisher
+    restart: unless-stopped
+    volumes:
+      - ./sensor-publish:/sensor-publish
+# volumes for mapping data,config and log
+
+volumes:
+  mongodb_data:
+  config:
+  data:
+  log:
+
+networks:
+  default:
+    name: mqtt-network
