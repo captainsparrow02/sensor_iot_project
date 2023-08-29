@@ -39,7 +39,12 @@ services:
     restart: unless-stopped
     volumes:
       - ./sensor-publish:/sensor-publish
-# volumes for mapping data,config and log
+  backend-api:
+    build: ./backend-api
+    container_name: fastapi
+    restart: unless-stopped
+    ports:
+      - 8080:80
 
 volumes:
   mongodb_data:
