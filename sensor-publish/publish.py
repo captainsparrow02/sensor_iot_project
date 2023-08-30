@@ -1,37 +1,50 @@
 import paho.mqtt.client as mqtt
-import multiprocessing
-from sensor_publish_template import publish_data
+import json
+import sensor
+import sys
+import time
 
-# Using a mqtt broker server.
+# MQTT
+client = mqtt.Client("Sensor")
 mqttBroker = "mqtt"
-
-# Creating client and giving it a name.
-client_temp = mqtt.Client("Temperature")
-client_humid = mqtt.Client("Humidity")
-# client.username_pw_set("user1", "1234")
 port = 1883
 qos = 1
 topic_temp = "sensor/reading/temperature"
 topic_humid = "sensor/reading/humidity"
-# payload = json.dumps(sensor.get_sensor_payload())
 
-temperature = multiprocessing.Process(target = publish_data, args = [
-		mqttBroker,
-        client_temp,
-        topic_temp,
-        qos,
-        port
-        ])
+def on_log(client, userdata, level, buf):
+    print("log: ", buf)
 
-humidity = multiprocessing.Process(target = publish_data, args = [
-		mqttBroker,
-        client_humid,
-        topic_humid,
-        qos,
-        port
-        ])
+def on_connect(client, userdata, flags, rc):
+	if rc == 0:
+		print(f"{client}: Connected OK")
+	else:
+		print("Bad connection")
+		sys.exit(1)
 
-temperature.start()
-humidity.start()
-temperature.join()
-humidity.join()
+
+client.on_connect = on_connect
+client.on_log=on_log
+
+try:
+	client.connect(mqttBroker, port)
+except:
+	print("No Connection")
+	sys.exit(1)
+
+
+client.loop_start()
+try:
+	while True:
+
+		payload_temp = json.dumps(sensor.get_sensor_payload())
+		payload_humid = json.dumps(sensor.get_sensor_payload())
+
+		client.publish(topic_temp, payload_temp, qos)
+		client.publish(topic_humid, payload_humid, qos)
+		
+		time.sleep(1)
+except KeyboardInterrupt:
+	print("Closing")
+	client.disconnect()
+	client.loop_stop()
