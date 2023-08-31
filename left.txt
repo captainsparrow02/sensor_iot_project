@@ -1,0 +1,8 @@
+1. Change in sub.py and remove Redis -- documentation
+2. Make changes in FastAPI for redis, especially last ten readings. -- Done
+3. Add logging everywhere.
+
+4. Make a config file and remove hardcoding.
+5. Clean up docker-compose file and add depends_on (Chatgpt).
+6. Make documentation.
+7. Add comments

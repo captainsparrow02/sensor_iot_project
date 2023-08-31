@@ -1,86 +1,72 @@
 import paho.mqtt.client as mqtt
+from configparser import ConfigParser
 import sys
-import pymongo
+from pymongo import MongoClient
 import json
-import redis
-# import redis
+import logging as log
+
+log.basicConfig(filename='subscribe_logs/subscribe.log', filemode='w', level=log.INFO, format="[%(asctime)s] %(levelname)s %(message)s", datefmt='%d-%m-%Y %I:%M:%S %p')
+
+config = ConfigParser()
+config.read("config/project.conf")
 
 # MongoDB
-mongo_client = pymongo.MongoClient('mongodb://mongodb:27017/')
-db = mongo_client['sensors']
-collections_temp = db['temp']
-collections_humid = db['humid']
-
-# Redis 
-# Redis
-redis_host = "redis"
-redis_port = 6379
-redis_client = redis.Redis(host=redis_host, port=redis_port)
+mongo_client = MongoClient(config["MONGODB"]["hostname"])
+db = mongo_client[config["MONGODB"]["db"]]
+collections_temp = db[config["MONGODB"]["temperature_collection"]]
+collections_humid = db[config["MONGODB"]["humidity_collection"]]
 
 # MQTT 
 client = mqtt.Client("Subscriber")
-mqttBroker = "mqtt"
-port = 1883
-topic_humidity = "sensor/reading/humidity"
-topic_temperature = "sensor/reading/temperature"
-
-qos = 0
+mqttBroker = config["MQTT"]["broker"]
+port = int(config["MQTT"]["port"])
+qos = int(config["MQTT"]["subscribe_qos"])
+topic_temp = config["MQTT"]["temperature_topic"]
+topic_humid = config["MQTT"]["humidity_topic"]
 
 def on_log(client, userdata, level, buf):
-    print("log: ",buf)
+    log.info(buf)
 
 def on_connect(client, userdata, flags, response_code):
 	# Checking for established connection.
     if response_code == 0:
         conFlag = True
-        print("Connected with status: {0}".format(response_code))	
-        client.subscribe(topic_humidity, qos)
-        client.subscribe(topic_temperature, qos)
-        client.message_callback_add(topic_humidity, on_message_for_temperature)
-        client.message_callback_add(topic_temperature, on_message_for_humidity)
+        log.info(f"{client._client_id}: Connected with status RP {response_code}")	
+        client.subscribe(topic_humid, qos)
+        client.subscribe(topic_temp, qos)
+        client.message_callback_add(topic_humid, on_message_for_temperature)
+        client.message_callback_add(topic_temp, on_message_for_humidity)
     else:
-        print("Bad Connection", response_code)
+        log.warning(f"{client._client_id}: Bad Connection.")
 
 def on_message_for_temperature(client, userdata, message):
-    print("Recieved Message: ", str(message.payload.decode('utf-8')))
+    log.info(f"{client._client_id}: Recieved Message on temp- "+str(message.payload.decode('utf-8')))
     payload = json.loads(message.payload.decode('utf-8'))
 
-    print("temp", payload)
-    try:
-        redis_client.lpush("temperature_readings", json.dumps(payload))
-        redis_client.ltrim("temperature_readings", 0, 9)
-    except Exception as e:
-        print("Redis insert error")
-        print(e)
     try:
         collections_temp.insert_one(payload)
+        log.info("Data inserted in DB.")
     except Exception as e:
-        print("Data could not be inserted.")
-        print(e)
+        log.warning("Data could not be inserted.")
+        log.warning(str(e))
 
 def on_message_for_humidity(client, userdata, message):
-    print("Recieved Message: ", str(message.payload.decode('utf-8')))
+    log.info(f"{client._client_id}: Recieved Message on humid- "+str(message.payload.decode('utf-8')))
     payload = json.loads(message.payload.decode('utf-8'))
-    print("Humid", payload)
-    try:
-        redis_client.lpush("humidity_readings", json.dumps(payload))
-        redis_client.ltrim("humidity_readings", 0, 9)
-    except:
-        print("Redis insert error")
+
     try:
         collections_humid.insert_one(payload)
-    except:
-        print("Data could not be inserted.")
+        log.info("Data inserted in DB.")
+    except Exception as e:
+        log.warning("Data could not be inserted.")
+        log.warning(str(e))
     
-
-# Attempting Connection
 client.on_connect = on_connect
-# client.on_message = on_message
-# client.on_log=on_log
+client.on_log=on_log
 
 try:
 	client.connect(mqttBroker, port)
 except:
-	print("No Connection")
+	log.warning(f"{client._client_id}: Could not connect.")
 	sys.exit(1)
 client.loop_forever()

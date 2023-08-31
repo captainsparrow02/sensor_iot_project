@@ -1,6 +1,6 @@
 FROM python:3.10-slim-buster
 
-WORKDIR /backend-api
+WORKDIR /backend_api
 
 COPY requirements.txt requirements.txt
 

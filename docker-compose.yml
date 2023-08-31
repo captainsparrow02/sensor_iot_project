@@ -12,13 +12,18 @@ services:
     volumes:
       - ./config:/mosquitto/config:rw
       - ./data:/mosquitto/data:rw
-      - ./log:/mosquitto/log:rw
+      - ./logs:/mosquitto/log:rw
     
   sensor-subscribe:
     build: ./sensor-subscribe
     container_name: subscriber
     volumes:
       - ./sensor-subscribe:/sensor-subscribe
+      - ./config:/sensor-subscribe/config:rw
+      - ./logs:/sensor-subscribe/subscribe_logs
+    depends_on:
+      - mqtt
+      - mongodb
 
   mongodb:
     image: mongo
@@ -27,6 +32,7 @@ services:
       - "27017:27017"
     volumes:
       - ./db:/data/db:rw
+
   redis:
     image: redis
     container_name: redis
@@ -39,19 +45,30 @@ services:
     restart: unless-stopped
     volumes:
       - ./sensor-publish:/sensor-publish
-  backend-api:
-    build: ./backend-api
+      - ./logs:/sensor-publish/publish_logs:rw
+      - ./config:/sensor-publish/config:rw
+    depends_on:
+      - mqtt
+      - sensor-subscribe
+    
+
+  backend_api:
+    build: ./backend_api
     container_name: fastapi
     restart: unless-stopped
     ports:
       - 8080:80
+    volumes:
+      - ./backend_api:/backend_api
+      - ./logs:/backend_api/backend_api_logs:rw
+      - ./config:/backend_api/config:rw
+    depends_on:
+      - mongodb
+      - redis
+      - sensor-subscribe
 
 volumes:
   mongodb_data:
   config:
   data:
-  log:
-
-networks:
-  default:
-    name: mqtt-network
+  logs:

@@ -4,8 +4,10 @@ WORKDIR /sensor-publish
 
 COPY requirements.txt requirements.txt
 
-RUN pip3 install -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD [ "python3", "publish.py" ]
+RUN chmod +x run.sh
+
+CMD [ "bash", "run.sh" ]
