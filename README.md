@@ -69,8 +69,7 @@ docker-compose down
 
 ## Challenges Faced
 1. **Challenge**: The subscriber and publisher containers were initiating prior to the MongoDB container, leading to the subscriber container failing and rebooting due to its reliance on the MongoDB container for storing data.
-
 **Solution**: Implemented the `depends-on` configuration to guarantee that dependent containers launch only after the containers they rely upon have been successfully initialized.
+	
 2. **Challenge**: Given the presence of five autonomous sensors that must concurrently publish data, I faced a dilemma regarding code duplication in the implementation process. Furthermore, executing all five Python sensor scripts simultaneously within the `Dockerfile` presented an additional challenge.
-
 **Solution**: To address these issues, I opted for creating a template sensor file that could be utilized by all five sensor Python scripts to facilitate data publication while minimizing code repetition. Additionally, I employed a shell script to execute all five sensor Python scripts simultaneously, which was subsequently incorporated into the `Dockerfile`.
