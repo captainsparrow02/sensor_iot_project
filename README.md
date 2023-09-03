@@ -16,7 +16,7 @@ cd sensor_iot_project
 ```sh
 docker-compose up --build -d
 ```
-Setting up the images and starting up the services may take some time. Once you see the following message in your terminal, that indicates that the services are up and running.
+Setting up the images and starting up the services may take some time once you see the following message in your terminal, that indicates that the services are up and running.
 ```sh
 .....
 Creating mongodb ... done
@@ -26,8 +26,8 @@ Creating subscriber ... done
 Creating fastapi    ... done
 Creating publisher  ... done
 ```
-You can view the sensor data using the following API-endpoints.
-* For fetching latest 10 sensor readings using a specific sensor ID - http://0.0.0.0:8080/sensor/{id} *`# Replace id with sensor ID`*
+You can view the sensor data using the following API endpoints.
+* For fetching the latest 10 sensor readings using a specific sensor ID - http://0.0.0.0:8080/sensor/{id} *`# Replace id with sensor ID`*
 * For fetching all sensors data for a given date range - http://0.0.0.0:8080/date?start_date={YYYY-MM-DD}&end_date={YYYY-MM-DD} *`# Replace YYYY-MM-DD with date for both start and end date.`*
 
 To view the logs for the `sensor-publish`, `sensor-subscribe` and `backend-api` services, use the following commands.
@@ -52,7 +52,7 @@ docker-compose down
 ```
 ## Docker Services Insights
 ## mqtt
-* This services is based on the Eclipse Moquitto Image and sets up a persistent Mosquitto broker with configurable settings and data storage, which can be accessed via standard MQTT and WebSocket interfaces on ports 1883 and 9001 respectively.
+* This service is based on the Eclipse Moquitto Image and sets up a persistent Mosquitto broker with configurable settings and data storage, which can be accessed via standard MQTT and WebSocket interfaces on ports 1883 and 9001 respectively.
 * It mounts to 3 volumes - 
 	1.    `./config`  to  `/mosquitto/config`  allowing the host machine to access the mosquitto configuration files.
 	2.  `./data`  to  `/mosquitto/data`  allowing the host machine to persist data between container restarts.
@@ -61,36 +61,36 @@ docker-compose down
 
 ## mongodb
 * This service is based on the MongoDB Image and sets up a MongoDB database that can be accessed from outside the container through port 27017 and allows data persistence across container restarts.
-* The database is being used to store incoming MQTT messages recieved within the `sensor-subscribe` container.
-* It mounts to a single volume at  `./db`  on the host machine to  `/data/db`  inside the container, allowing data stored in the container to be persisted across restarts and making it accessible from outside the container.
+* The database is being used to store incoming MQTT messages received within the `sensor-subscribe` container.
+* It mounts to a single volume at  `./db`  on the host machine to  `/data/db`  inside the container, allowing data stored in the container to persist across restarts and making it accessible from outside the container.
 
 ## redis
 * This service is based on the Redis image and sets up a Redis instance that can be accessed from outside the container at port 6379 and allows other services to use it as a cache store.
-* The Redis database is being used a cache within the `backend-api` container for API calls.
+* The Redis database is being used as a cache within the `backend-api` container for API calls.
 
 ## sensor-subscribe
-* This service is configured to build container for a sensor subscription service for incoming MQTT messages based on the contents of the `./sensor-subscribe` directory.
+* This service is configured to build a container for a sensor subscription service for incoming MQTT messages based on the contents of the `./sensor-subscribe` directory.
 * This service mounts to 3 volumes - 
-	1.-   `./sensor-subscribe` is mounted to `/sensor-subscribe` inside the container, allowing the container to access the code and dependencies defined in the current directory.
-	2 `./config` is mounted to `/sensor-subscribe/config` inside the container, allowing the container to read configuration files.
-	3.`./logs` is mounted to `/sensor-subscribe/subscribe_logs` inside the container, allowing the container to write log files.
+	1.    `./sensor-subscribe` is mounted to `/sensor-subscribe` inside the container, allowing the container to access the code and dependencies defined in the current directory.
+	2.    `./config` is mounted to `/sensor-subscribe/config` inside the container, allowing the container to read configuration files.
+	3.    `./logs` is mounted to `/sensor-subscribe/subscribe_logs` inside the container, allowing the container to write log files.
 * The `depends_on` section specifies that the `sensor-subscribe` service depends on both the `mqtt` and `mongodb` services. This means that the `sensor-subscribe` service will not start until both the `mqtt` and `mongodb` services are up and running.
 
 ## sensor-publisher
-* This service is configured to build container for a sensor publishing service to publish incoming sensor payload on MQTT topics. It is from based on the contents of the `./sensor-publish` directory.
+* This service is configured to build a container for a sensor publishing service to publish incoming sensor payloads on MQTT topics. It is based on the contents of the `./sensor-publish` directory.
 * This service mounts to 3 volumes - 
-	1.-   `./sensor-publish` is mounted to `/sensor-publish` inside the container, allowing the container to access the code and dependencies defined in the current directory.
-	2 `./config` is mounted to `/sensor-publish/config` inside the container, allowing the container to read configuration files.
-	3.`./logs` is mounted to `/sensor-publish/publish_logs` inside the container, allowing the container to write log files.
+	1.    `./sensor-publish` is mounted to `/sensor-publish` inside the container, allowing the container to access the code and dependencies defined in the current directory.
+	2.    `./config` is mounted to `/sensor-publish/config` inside the container, allowing the container to read configuration files.
+	3.    `./logs` is mounted to `/sensor-publish/publish_logs` inside the container, allowing the container to write log files.
 * The `depends_on` section specifies that the `sensor-publish` service depends on both the `mqtt` and `sensor-subscribe` services. This means that the `sensor-publish` service will not start until both the `mqtt` and `sensor-subscribe` services are up and running.
 
 ## backend_api
-* As the name suggests, the `backend_api` service builds a container to interract with the databases using the FastAPI application running inside it. It builds itself based on the contents of `./backend_api` directory with the container name as `fastapi`.
+* As the name suggests, the `backend_api` service builds a container to interact with the databases using the FastAPI application running inside it. It builds itself based on the contents of `./backend_api` directory with the container name as `fastapi`.
 * The service exposes port 8080 and maps it to port 80 inside the container, allowing external requests to reach the FastAPI application running inside the container.
 * This service mounts to 3 volumes - 
-	1.-   `./backend_api` is mounted to `/backend_api` inside the container, allowing the container to access the code and dependencies defined in the current directory.
-	2 `./config` is mounted to `/backend_api/config` inside the container, allowing the container to read configuration files.
-	3.`./logs` is mounted to `/backend_api/backend_api_logs` inside the container, allowing the container to write log files.
+	1.    `./backend_api` is mounted to `/backend_api` inside the container, allowing the container to access the code and dependencies defined in the current directory.
+	2.    `./config` is mounted to `/backend_api/config` inside the container, allowing the container to read configuration files.
+	3.    `./logs` is mounted to `/backend_api/backend_api_logs` inside the container, allowing the container to write log files.
 * The service depends on several other services defined in the Docker Compose file: `mongodb`, `redis`, and `sensor-subscribe`. This means that the `backend_api` service will not start until these dependent services are up and running.
 
 ## Design choices
@@ -103,7 +103,7 @@ docker-compose down
 
 ## Technical Assumptions
 
-* Since there was no mention on the number of sensors generating data, I have assumed 5 sensors for this project.
+* Since there was no mention of the number of sensors generating data, I have assumed 5 sensors for this project.
 
 * The Redis implementation is designed to store the most recently updated ten sensor readings, For the API endpoint to retrieve the latest ten sensor readings, I've implemented caching of the most recent ten readings for each sensor ID. The cache lasts just 10 seconds to minimize time differences, given the sensors publish data every second.
 
