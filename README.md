@@ -27,8 +27,8 @@ Creating fastapi    ... done
 Creating publisher  ... done
 ```
 You can view the sensor data using the following API-endpoints.
-* For fetching latest 10 sensor readings using a specific sensor ID - http://0.0.0.0:8080/sensor/{id}
-* For fetching all sensors data for a given date range - http://0.0.0.0:8080/date?start_date={YYYY-MM-DD}&end_date={YYYY-MM-DD}
+* For fetching latest 10 sensor readings using a specific sensor ID - http://0.0.0.0:8080/sensor/{id} *`# Replace id with sensor ID`*
+* For fetching all sensors data for a given date range - http://0.0.0.0:8080/date?start_date={YYYY-MM-DD}&end_date={YYYY-MM-DD} *`# Replace YYYY-MM-DD with date for both start and end date.`*
 
 To view the logs for the `sensor-publish`, `sensor-subscribe` and `backend-api` services, use the following commands.
 
