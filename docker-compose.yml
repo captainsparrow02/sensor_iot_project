@@ -1,6 +1,7 @@
 version: "3"
 
 services:
+  # Service to run Mosquitto Broker.
   mqtt:
     image: eclipse-mosquitto
     container_name: mqtt
@@ -13,7 +14,24 @@ services:
       - ./config:/mosquitto/config:rw
       - ./data:/mosquitto/data:rw
       - ./logs:/mosquitto/log:rw
-    
+  
+  # Service to run MongoDB database.
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./db:/data/db:rw
+  
+  # Service to run Redis database.
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  # Service to Subcribe to topics for incoming MQTT messages.  
   sensor-subscribe:
     build: ./sensor-subscribe
     container_name: subscriber
@@ -25,33 +43,20 @@ services:
       - mqtt
       - mongodb
 
-  mongodb:
-    image: mongo
-    container_name: mongodb
-    ports:
-      - "27017:27017"
-    volumes:
-      - ./db:/data/db:rw
-
-  redis:
-    image: redis
-    container_name: redis
-    ports:
-      - "6379:6379"
-
+  # Service to Publish sensor payload to MQTT topics.
   sensor-publish:
     build: ./sensor-publish
     container_name: publisher
     restart: unless-stopped
     volumes:
       - ./sensor-publish:/sensor-publish
-      - ./logs:/sensor-publish/publish_logs:rw
       - ./config:/sensor-publish/config:rw
+      - ./logs:/sensor-publish/publish_logs:rw
     depends_on:
       - mqtt
       - sensor-subscribe
-    
-
+  
+  # Service to servce APIs for fetching data from database.
   backend_api:
     build: ./backend_api
     container_name: fastapi
@@ -60,8 +65,8 @@ services:
       - 8080:80
     volumes:
       - ./backend_api:/backend_api
-      - ./logs:/backend_api/backend_api_logs:rw
       - ./config:/backend_api/config:rw
+      - ./logs:/backend_api/backend_api_logs:rw
     depends_on:
       - mongodb
       - redis
