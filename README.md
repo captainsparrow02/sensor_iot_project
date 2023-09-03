@@ -16,7 +16,7 @@ cd sensor_iot_project
 ```sh
 docker-compose up --build -d
 ```
-Setting up the images and starting up the services may take some time once you see the following message in your terminal, that indicates that the services are up and running.
+Setting up the images and starting up the services may take some time. Once you see the following message in your terminal, that indicates that the services are up and running.
 ```sh
 .....
 Creating mongodb ... done
