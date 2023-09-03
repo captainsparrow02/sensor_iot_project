@@ -6,7 +6,7 @@ Clone this repository using the command below.
 ```sh
 git clone https://github.com/captainsparrow02/sensor_iot_project.git
 ```
-This is a containerized application and requires docker for it to run. Make sure that you have docker installed on your machine or [Install Docker Desktop](https://www.docker.com/products/docker-desktop/). 
+This is a containerized application and requires docker for its execution. Make sure that you have docker installed on your machine or [Install Docker Desktop](https://www.docker.com/products/docker-desktop/). 
 
 Once you have Docker installed, navigate to the project folder
 ```sh
