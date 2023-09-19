@@ -27,7 +27,7 @@ collections_humid = db[config["MONGODB"]["humidity_collection"]]
 app = FastAPI()
 
 @app.get("/sensor/{id}")
-def get_sensor_data(id: int):
+async def get_sensor_data(id: int):
     '''This fucntion handles requestes coming for sensor readings with a specific sensor ID.'''
 
     log.info(f"Sensor data for ID {id} triggered.")
@@ -61,7 +61,7 @@ def get_sensor_data(id: int):
     return result
 
 @app.get("/date")
-def get_sensors_data_from_date_range(start_date: str, end_date: str):
+async def get_sensors_data_from_date_range(start_date: str, end_date: str):
     '''This function handles request for all sensors reading captured withing a date range.'''
 
     log.info("Sensors data wrt to date triggered.")
@@ -70,11 +70,11 @@ def get_sensors_data_from_date_range(start_date: str, end_date: str):
     # Query params only have start and end date, hence appenidng time.
     start_date = start_date + "T00:00:00"
     end_date = end_date + "T23:59:59"
-
+    
     # Fetching data from MongoDB in sorted order.
     res_temp = list(collections_temp.find({"timestamp": {"$gte": start_date, "$lte": end_date}}, {'_id': False}).sort([("timestamp", 1)])), 
     res_humid = list(collections_humid.find({"timestamp": {"$gte": start_date, "$lte": end_date}}, {'_id': False}).sort([("timestamp", 1)]))
-    
+       
     # Response payload setup.
     result = {
         "temperature" : res_temp, 
